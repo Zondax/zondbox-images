@@ -1,4 +1,5 @@
 DOCKER_IMAGE="zondax/docker-stm32-optee"
+RUSTEE_APP_LOCAL="/home/xdev/zondax/reps/hello-rustee.git"
 
 INTERACTIVE:=$(shell [ -t 0 ] && echo 1)
 
@@ -15,6 +16,7 @@ define run_docker
 	--privileged \
 	-u $(shell id -u) \
 	-v $(shell pwd)/shared:/home/zondax/shared \
+	-v $(RUSTEE_APP_LOCAL):/home/zondax/hello-rustee.git \
 	-p 8000:8000	\
 	-e DISPLAY=$(shell echo ${DISPLAY}) \
 	-e ZONDAX_CONF=$(2) \
