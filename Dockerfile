@@ -79,6 +79,12 @@ RUN cd $HOME; \
     ln -s -f .tmux/.tmux.conf ; \
     cp .tmux/.tmux.conf.local .
 
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+RUN echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> $HOME/.zshrc
+RUN echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> $HOME/.bashrc
+RUN $HOME/.cargo/bin/rustup target add armv7-unknown-linux-gnueabihf
+
 ADD entrypoint.sh /home/zondax/entrypoint.sh
 ENTRYPOINT ["/home/zondax/entrypoint.sh"]
 
