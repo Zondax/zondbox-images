@@ -9,7 +9,7 @@ if [ "$ZONDAX_CONF" == "dk2" ]; then
 	DISTRO=openstlinux-weston
 	MACHINE=stm32mp1
 
-	TAG_NAME=zondax-meta-20-02-19
+	BRANCH_NAME=refs/tags/zondax-meta-20-02-19
 	MANIFEST_URL=https://github.com/Zondax/oe-manifest.git
 
 	IMAGE_DIR=tmp-glibc/deploy/images/stm32mp1
@@ -25,7 +25,7 @@ elif [ "$ZONDAX_CONF" == "bytesatwork" ]; then
 	DISTRO=poky-bytesatwork
 	MACHINE=bytedevkit
 
-	TAG_NAME=zondax-meta-bytesatwork
+	BRANCH_NAME=refs/tags/$zondax-meta-bytesatwork
 	MANIFEST_URL=https://github.com/Zondax/oe-manifest.git
 
 	# for some reason after sourcing MACHINE is empty
@@ -34,6 +34,25 @@ elif [ "$ZONDAX_CONF" == "bytesatwork" ]; then
 
 	ENV_SOURCE="setup-environment build"
 	MANIFEST_FILE=bytesatwork.xml
+
+	FLASH_LAYOUT=FlashLayout_sdcard_stm32mp157c-bytedevkit.tsv
+	# Scripts expects just simple EULA var set
+	EULA=1
+elif [ "$ZONDAX_CONF" == "imx8mq" ]; then
+	echo "Using MCIMX8M-EVKB manifest"
+
+	DISTRO=fsl-imx-wayland
+	MACHINE=imx8mqevk
+
+	BRANCH_NAME=imx-linux-sumo
+	MANIFEST_URL=https://source.codeaurora.org/external/imx/imx-manifest
+
+	# for some reason after sourcing MACHINE is empty
+	IMAGE_DIR=tmp/deploy/images/imx8qm
+	IMAGE_NAME=fsl-image-qt5-validation-imx
+
+	ENV_SOURCE="./fsl-setup-release.sh -b bld-wayland"
+	MANIFEST_FILE=imx-4.14.98-2.3.1.xml
 
 	FLASH_LAYOUT=FlashLayout_sdcard_stm32mp157c-bytedevkit.tsv
 	# Scripts expects just simple EULA var set
@@ -55,7 +74,7 @@ echo
 # Checkout and clone manifest
 mkdir -p ${ROOT_DIR}
 cd ${ROOT_DIR}
-repo init --depth=1 -u ${MANIFEST_URL} -b refs/tags/${TAG_NAME} -m ${MANIFEST_FILE}
+repo init --depth=1 -u ${MANIFEST_URL} -b ${BRANCH_NAME} -m ${MANIFEST_FILE}
 repo sync -c -j$(nproc --all)
 
 echo "-----------------------------------------------------------------------"

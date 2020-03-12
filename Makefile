@@ -43,6 +43,9 @@ shell_bytesatwork:
 shell_dk2:
 	$(call run_docker,/home/zondax/shared/zxshell.sh,dk2)
 
+shell_imx8mq:
+	$(call run_docker,/home/zondax/shared/zxshell.sh,imx8mq)
+
 toaster:
 	$(call run_docker,/home/zondax/shared/zxtoaster.sh,dk2)
 
@@ -51,4 +54,7 @@ build_image_bytesatwork:
 
 build_image_dk2:
 	$(call run_docker,/home/zondax/shared/zxbuild.sh,dk2)
+
+build_image_imx8mq:
+	$(call run_docker,/home/zondax/shared/zxbuild.sh,imx8mq)
 
