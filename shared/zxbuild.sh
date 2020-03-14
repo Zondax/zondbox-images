@@ -13,14 +13,32 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 IMAGE_DIR="${BUILDDIR}/${IMAGE_DIR}"
+IMAGEOUTPUT_DIR=$HOME/shared/images/
 
 echo "IMAGEDIR  : "$IMAGE_DIR
 echo "IMAGENAME : "$IMAGE_NAME
+echo "IMAGEOUTPUT : "$IMAGEOUTPUT_DIR
 
-# Create image using layout
-set -e
-$IMAGE_DIR/scripts/create_sdcard_from_flashlayout.sh \
-	$IMAGE_DIR/flashlayout_$IMAGE_NAME/$FLASH_LAYOUT
+# Images are ready, apply layout and move them to the output dir
 
-# Copy raw images
-cp $IMAGE_DIR/*.raw $HOME/shared/images/
+if [ "$ZONDAX_CONF" == "dk2" ]; then
+	# Create image using layout
+	set -e
+	$IMAGE_DIR/scripts/create_sdcard_from_flashlayout.sh \
+		$IMAGE_DIR/flashlayout_$IMAGE_NAME/$FLASH_LAYOUT
+
+	# Copy raw images
+	cp $IMAGE_DIR/*.raw $$IMAGEOUTPUT_DIR
+elif [ "$ZONDAX_CONF" == "bytesatwork" ]; then
+	# Create image using layout
+	set -e
+	$IMAGE_DIR/scripts/create_sdcard_from_flashlayout.sh \
+		$IMAGE_DIR/flashlayout_$IMAGE_NAME/$FLASH_LAYOUT
+
+	# Copy raw images
+	cp $IMAGE_DIR/*.raw $IMAGEOUTPUT_DIR
+elif [ "$ZONDAX_CONF" == "imx8qm" ]; then
+	set -e
+	# Copy raw images
+	cp $IMAGE_DIR/* $IMAGEOUTPUT_DIR
+fi

@@ -74,8 +74,8 @@ echo
 # Checkout and clone manifest
 mkdir -p ${ROOT_DIR}
 cd ${ROOT_DIR}
-repo init --depth=1 -u ${MANIFEST_URL} -b ${BRANCH_NAME} -m ${MANIFEST_FILE}
-repo sync -c -j$(nproc --all)
+repo init --depth=1 --no-clone-bundle -u ${MANIFEST_URL} -b ${BRANCH_NAME} -m ${MANIFEST_FILE}
+repo sync -c -j$(nproc --all) --fetch-submodules --current-branch --no-clone-bundle
 
 echo "-----------------------------------------------------------------------"
 echo Setting up environment:
@@ -87,6 +87,6 @@ echo "-----------------------------------------------------------------------"
 echo Adding Zondax Meta layer:
 echo "-----------------------------------------------------------------------"
 
-bitbake-layers add-layer ../layers/meta-zondax
+git clone https://github.com/Zondax/meta-zondax.git $HOME/shared/meta-zondax
+bitbake-layers add-layer $HOME/shared/meta-zondax
 bitbake-layers show-layers
-
