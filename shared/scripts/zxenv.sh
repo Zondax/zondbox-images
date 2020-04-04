@@ -7,20 +7,11 @@ PATH=$PATH:$HOME/shared/scripts
 if [ "$ZONDAX_CONF" == "dk2" ]; then
 	echo "Building for STM32 DK2"
 
-	export DISTRO=zondbox-distro
-	export MACHINE=stm32mp1
-
-	MANIFEST_BRANCH=master
-	MANIFEST_URL=https://github.com/Zondax/zondbox-manifest
-	MANIFEST_FILE=default.xml
-
+	MACHINE=stm32mp1
 	IMAGE_DIR=tmp/deploy/images/stm32mp1
-	IMAGE_NAME=core-image-minimal
-
-	ENV_SOURCE="poky/oe-init-build-env build"
 	FLASH_LAYOUT=FlashLayout_sdcard_stm32mp157c-dk2-optee.tsv
-
 	BSP_LAYERS=(meta-st-stm32mp meta-st-stm32mp-addons)
+
 elif [ "$ZONDAX_CONF" == "bytesatwork" ]; then
 	echo "Error: Bytesatwork is not supported"
 
@@ -29,7 +20,21 @@ elif [ "$ZONDAX_CONF" == "imx8mq" ]; then
 	echo "Error: MCIMX8M-EVKB is not supported"
 
 	exit 1
+elif [ "$ZONDAX_CONF" == "qemu" ]; then
+	echo "Building for QEMU"
+
+	MACHINE=qemu-optee32
+	IMAGE_DIR=tmp/deploy/images/qemu-optee32
+	BSP_LAYERS=(meta-zondax-qemu)
 fi
+
+MANIFEST_BRANCH=thud
+MANIFEST_URL=https://github.com/Zondax/zondbox-manifest
+MANIFEST_FILE=default.xml
+ENV_SOURCE="poky/oe-init-build-env build"
+IMAGE_NAME=core-image-minimal
+export DISTRO=zondbox-distro
+export MACHINE=$MACHINE
 
 ROOT_DIR=$HOME/shared/${DISTRO}
 declare EULA_${MACHINE}=1
@@ -50,26 +55,26 @@ repo init --depth=1 --no-clone-bundle -u ${MANIFEST_URL} -b ${MANIFEST_BRANCH} -
 repo sync -c -j$(nproc --all) --fetch-submodules --current-branch --no-clone-bundle
 
 echo "-----------------------------------------------------------------------"
-echo Setting up environment:
+echo Setting up environment...
 echo "-----------------------------------------------------------------------"
 
 source ${ENV_SOURCE}
 
 echo "-----------------------------------------------------------------------"
-echo Adding all needed distro layers:
+echo Adding all needed distro layers...
 echo "-----------------------------------------------------------------------"
 
 bitbake-layers add-layer ${ROOT_DIR}/meta-openembedded/meta-oe/
 bitbake-layers add-layer ${ROOT_DIR}/meta-openembedded/meta-python/
 
 echo "-----------------------------------------------------------------------"
-echo Adding all needed BSP layers:
+echo Adding all needed BSP layers...
 echo "-----------------------------------------------------------------------"
 
 for i in "${BSP_LAYERS[@]}"; do bitbake-layers add-layer ${ROOT_DIR}/$i; done
 
 echo "-----------------------------------------------------------------------"
-echo Adding Zondax meta layer:
+echo Adding Zondax meta layer...
 echo "-----------------------------------------------------------------------"
 
 bitbake-layers add-layer ${ROOT_DIR}/meta-zondax/
