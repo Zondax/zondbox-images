@@ -1,5 +1,4 @@
 DOCKER_IMAGE="zondax/builder-yocto"
-RUSTEE_APP_LOCAL="/home/xdev/zondax/reps/hello-rustee.git"
 
 INTERACTIVE:=$(shell [ -t 0 ] && echo 1)
 
@@ -11,6 +10,10 @@ INTERACTIVE_SETTING:=
 TTY_SETTING:=
 endif
 
+QEMU_SERIAL1=54320
+QEMU_SERIAL2=54321
+GDB_SERVER=1234
+
 SCRIPTS_DIR=/home/zondax/shared/scripts
 
 define run_docker
@@ -18,7 +21,9 @@ define run_docker
 	--privileged \
 	-u $(shell id -u) \
 	-v $(shell pwd)/shared:/home/zondax/shared \
-	-v $(RUSTEE_APP_LOCAL):/home/zondax/hello-rustee.git \
+	-p $(QEMU_SERIAL1):$(QEMU_SERIAL1) \
+	-p $(QEMU_SERIAL2):$(QEMU_SERIAL2) \
+	-p $(QDB_SERVER):$(GDB_SERVER) \
 	-e ZONDAX_CONF=$(2) \
 	$(DOCKER_IMAGE) \
 	"$(1)"
@@ -70,3 +75,6 @@ build_image_imx8mq: pull_docker
 
 build_image_qemu: pull_docker
 	$(call run_docker,$(SCRIPTS_DIR)/zxbuild.sh,qemu)
+
+run_qemu: pull_docker
+	$(call run_docker,$(SCRIPTS_DIR)/zxrun.sh,qemu)
