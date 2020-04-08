@@ -27,6 +27,17 @@ elif [ "$ZONDAX_CONF" == "qemu" ]; then
 	IMAGE_DIR=tmp/deploy/images/qemu-optee32
 	BSP_LAYERS=(meta-zondax-qemu)
 fi
+function bsp_layers_current_add () {
+	for i in "${BSP_LAYERS[@]}"; do bitbake-layers add-layer ${ROOT_DIR}/$i; done
+}
+
+function custom_layers_clean_all () {
+	# clean cached bsp layer paths in bblayers.conf
+	# we just remove one-by-one regardless if it's listed
+	CUSTOM_LAYERS_FULL=(meta-zondax meta-zondax-qemu meta-st-stm32mp-addons
+			    meta-st-stm32mp)
+	for i in "${CUSTOM_LAYERS_FULL[@]}"; do bitbake-layers remove-layer ${ROOT_DIR}/$i; done
+}
 
 MANIFEST_BRANCH=thud
 MANIFEST_URL=https://github.com/Zondax/zondbox-manifest
@@ -70,8 +81,8 @@ bitbake-layers add-layer ${ROOT_DIR}/meta-openembedded/meta-python/
 echo "-----------------------------------------------------------------------"
 echo Adding all needed BSP layers...
 echo "-----------------------------------------------------------------------"
-
-for i in "${BSP_LAYERS[@]}"; do bitbake-layers add-layer ${ROOT_DIR}/$i; done
+custom_layers_clean_all
+bsp_layers_current_add
 
 echo "-----------------------------------------------------------------------"
 echo Adding Zondax meta layer...
