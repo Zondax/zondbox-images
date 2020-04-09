@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source $DIR/zxsettings
 
-DISTRO=zondbox-distro
-ROOT_DIR=$HOME/shared/${DISTRO}
-BUILDDIR=$ROOT_DIR/build
-IMAGEOUTPUT_DIR=$HOME/shared/images/$ZONDAX_CONF
+IMAGEOUTPUT_DIR=$DIR/../images/${ZONDAX_CONF}
 
 echo "Please use telnet to receive console output: "
 echo "    NW output > telnet 127.0.0.1 54320"
@@ -14,7 +12,7 @@ echo "    SW output > telnet 127.0.0.1 54321"
 if [ "$ZONDAX_CONF" == "qemu8" ]; then
 	set -e
 
-	ROOT_NATIVE=$BUILDDIR/tmp/work/qemu_optee64-poky-linux/core-image-minimal/1.0-r0/recipe-sysroot-native
+	ROOT_NATIVE=$BUILD_DIR/tmp/work/qemu_optee64-poky-linux/core-image-minimal/1.0-r0/recipe-sysroot-native
 
 	cd $IMAGEOUTPUT_DIR && $ROOT_NATIVE/usr/bin/qemu-system-aarch64 \
 		-s -S \
@@ -34,7 +32,7 @@ if [ "$ZONDAX_CONF" == "qemu8" ]; then
 elif [ "$ZONDAX_CONF" == "qemu" ]; then
 	set -e
 
-	ROOT_NATIVE=$BUILDDIR/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/recipe-sysroot-native
+	ROOT_NATIVE=$BUILD_DIR/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/recipe-sysroot-native
 
 	cd $IMAGEOUTPUT_DIR && $ROOT_NATIVE/usr/bin/qemu-system-arm \
 		-s -S \

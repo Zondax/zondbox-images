@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-source $DIR/zxenv.sh
+source $DIR/zxconfigure
 
 # Build
 bitbake ${IMAGE_NAME}
@@ -13,7 +13,7 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 IMAGE_DIR="${BUILDDIR}/${IMAGE_DIR}"
-IMAGEOUTPUT_DIR=$HOME/shared/images/$ZONDAX_CONF
+IMAGEOUTPUT_DIR=${HOME}/shared/images/${ZONDAX_CONF}
 
 mkdir -p $IMAGEOUTPUT_DIR
 

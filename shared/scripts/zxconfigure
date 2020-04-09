@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# This script prepares the environment for Yocto builds
+# This script prepares MACHINE-specific environment for Yocto builds
 
-PATH=$PATH:$HOME/shared/scripts
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source $DIR/zxenv
 
-# Zondax manifest
 if [ "$ZONDAX_CONF" == "dk2" ]; then
 	echo "Building for STM32 DK2"
 
@@ -32,7 +32,12 @@ elif [ "$ZONDAX_CONF" == "qemu" ]; then
 	MACHINE=qemu-optee32
 	IMAGE_DIR=tmp/deploy/images/qemu-optee32
 	BSP_LAYERS=(meta-zondax-qemu)
+else
+	echo "Unsupported platform $ZONDAX_CONF, exiting..."
+
+	exit 1
 fi
+
 function bsp_layers_current_add () {
 	for i in "${BSP_LAYERS[@]}"; do bitbake-layers add-layer ${ROOT_DIR}/$i; done
 }
@@ -45,37 +50,8 @@ function custom_layers_clean_all () {
 	for i in "${CUSTOM_LAYERS_FULL[@]}"; do bitbake-layers remove-layer ${ROOT_DIR}/$i; done
 }
 
-MANIFEST_BRANCH=thud
-MANIFEST_URL=https://github.com/Zondax/zondbox-manifest
-MANIFEST_FILE=default.xml
-ENV_SOURCE="poky/oe-init-build-env build"
-IMAGE_NAME=core-image-minimal
-export DISTRO=zondbox-distro
 export MACHINE=$MACHINE
-
-ROOT_DIR=$HOME/shared/${DISTRO}
 declare EULA_${MACHINE}=1
-
-BUILD_DIR=$ROOT_DIR/build
-echo
-echo "-----------------------------------------------------------------------"
-echo "Fetching \"${DISTRO}\" distribution."
-echo "From ${MANIFEST_URL}/${MANIFEST_FILE}, branch/tag: ${MANIFEST_BRANCH}"
-echo "The recommended development image is: ${IMAGE_NAME}"
-echo "-----------------------------------------------------------------------"
-echo
-
-# Checkout and clone manifest
-mkdir -p ${ROOT_DIR}
-cd ${ROOT_DIR}
-repo init --depth=1 --no-clone-bundle -u ${MANIFEST_URL} -b ${MANIFEST_BRANCH} -m ${MANIFEST_FILE}
-repo sync -c -j$(nproc --all) --fetch-submodules --current-branch --no-clone-bundle
-
-echo "-----------------------------------------------------------------------"
-echo Setting up environment...
-echo "-----------------------------------------------------------------------"
-
-source ${ENV_SOURCE}
 
 echo "-----------------------------------------------------------------------"
 echo Adding all needed distro layers...
@@ -102,14 +78,3 @@ echo Packages that going to be built:
 echo "-----------------------------------------------------------------------"
 
 bitbake -g core-image-minimal && cat pn-buildlist | grep -ve "native" | sort | uniq
-echo
-echo "-----------------------------------------------------------------------"
-echo To build run zxbuild.sh
-echo Bitbake cheatsheet
-echo "   bitbake <image>                    e.g. bitbake ${IMAGE_NAME}"
-echo "   bitbake <recipe>                   e.g. bitbake optee-hellorustee"
-echo "   bitbake <package> -c listtasks     e.g. bitbake optee-hellorustee -c listtasks"
-echo "   bitbake <package> -c <taskname>    e.g. bitbake optee-hellorustee -c devshell"
-echo "   bitbake-layers show-layers"
-echo "   bitbake-layers show-recipes"
-echo "-----------------------------------------------------------------------"

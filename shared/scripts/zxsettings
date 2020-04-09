@@ -1,0 +1,15 @@
+# contains common settings
+
+# Yocto-specific variables
+export ENV_SOURCE="poky/oe-init-build-env build"
+export IMAGE_NAME=core-image-minimal
+export DISTRO=zondbox-distro
+
+# Paths
+export ROOT_DIR=${HOME}/shared/${DISTRO}
+export BUILD_DIR=${ROOT_DIR}/build
+
+# Zondax repo manifest
+export MANIFEST_BRANCH=thud
+export MANIFEST_URL=https://github.com/Zondax/zondbox-manifest
+export MANIFEST_FILE=default.xml

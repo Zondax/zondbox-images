@@ -1,20 +1,8 @@
 #!/usr/bin/env bash
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
-cd $DIR
-BRANCH=zeus
-
-if cd poky; then 
-    git pull; 
-else 
-    git clone --depth=1 git://git.yoctoproject.org/poky  -b $BRANCH
-    cd poky
-fi
-
-source oe-init-build-env
+source $DIR/zxconfigure
 
 # # Install toaster dependencies
-pip3 install -r $HOME/shared/poky/bitbake/toaster-requirements.txt
+pip3 install -r $ROOT_DIR/poky/bitbake/toaster-requirements.txt
 source toaster start webport=0.0.0.0:8000
 zsh
