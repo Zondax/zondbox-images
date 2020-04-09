@@ -42,6 +42,16 @@ elif [ "$ZONDAX_CONF" == "imx8mq" ]; then
 	cp -L $IMAGE_DIR/*.sdcard.bz2 $IMAGEOUTPUT_DIR
 	cd $IMAGEOUTPUT_DIR
 	lbunzip2 -vdf *.sdcard.bz2
+elif [ "$ZONDAX_CONF" == "qemu8" ]; then
+	cp -L $IMAGE_DIR/bl1.bin $IMAGEOUTPUT_DIR
+	cp -L $IMAGE_DIR/bl2.bin $IMAGEOUTPUT_DIR
+	cp -L $IMAGE_DIR/bl31.bin $IMAGEOUTPUT_DIR
+	cp -L $IMAGE_DIR/u-boot.bin $IMAGEOUTPUT_DIR/bl33.bin
+	cp -L $IMAGE_DIR/core-image-minimal-qemu-optee64.cpio.gz $IMAGEOUTPUT_DIR/rootfs.cpio.gz
+	cp -L $IMAGE_DIR/optee/tee-header_v2.bin $IMAGEOUTPUT_DIR/bl32.bin
+	cp -L $IMAGE_DIR/optee/tee-pager_v2.bin $IMAGEOUTPUT_DIR/bl32_extra1.bin
+	cp -L $IMAGE_DIR/optee/tee-pageable_v2.bin $IMAGEOUTPUT_DIR/bl32_extra2.bin
+	cp -L $IMAGE_DIR/Image $IMAGEOUTPUT_DIR
 elif [ "$ZONDAX_CONF" == "qemu" ]; then
 	set -e
 	echo "Copy raw images to output dir..."

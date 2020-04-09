@@ -61,6 +61,9 @@ shell_imx8mq: pull_docker
 shell_qemu: pull_docker
 	$(call run_docker,$(SCRIPTS_DIR)/zxshell.sh,qemu)
 
+shell_qemu8: pull_docker
+	$(call run_docker,$(SCRIPTS_DIR)/zxshell.sh,qemu8)
+
 toaster: pull_docker
 	$(call run_docker_ext,$(SCRIPTS_DIR)/zxtoaster.sh,dk2)
 
@@ -76,5 +79,11 @@ build_image_imx8mq: pull_docker
 build_image_qemu: pull_docker
 	$(call run_docker,$(SCRIPTS_DIR)/zxbuild.sh,qemu)
 
+build_image_qemu8: pull_docker
+	$(call run_docker,$(SCRIPTS_DIR)/zxbuild.sh,qemu8)
+
 run_qemu: pull_docker
 	$(call run_docker,$(SCRIPTS_DIR)/zxrun.sh,qemu)
+
+run_qemu8: pull_docker
+	$(call run_docker,$(SCRIPTS_DIR)/zxrun.sh,qemu8)

@@ -20,6 +20,12 @@ elif [ "$ZONDAX_CONF" == "imx8mq" ]; then
 	echo "Error: MCIMX8M-EVKB is not supported"
 
 	exit 1
+elif [ "$ZONDAX_CONF" == "qemu8" ]; then
+	echo "Building for QEMU v8"
+
+	MACHINE=qemu-optee64
+	IMAGE_DIR=tmp/deploy/images/qemu-optee64
+	BSP_LAYERS=(meta-zondax-qemu)
 elif [ "$ZONDAX_CONF" == "qemu" ]; then
 	echo "Building for QEMU"
 
