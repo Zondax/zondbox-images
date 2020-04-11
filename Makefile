@@ -76,7 +76,7 @@ login: pull_docker
 
 .PHONY: toaster
 toaster: pull_docker
-	$(call run_docker_ext,$(SCRIPTS_DIR)/zxtoaster.sh,dk2)
+	$(call run_docker_ext,$(SCRIPTS_DIR)/zxtoaster.sh,$(filter-out $@,$(MAKECMDGOALS)))
 
 .PHONY: shell
 shell: pull_docker
@@ -104,9 +104,10 @@ help:
 	@echo "   make pull_docker                  Fetch Zondax docker image"
 	@echo "   make pull_manifest                Fetch Zondax repo manifest"
 	@echo "   make login                        Simply login into docker container"
+	@echo "   make toaster <target>             Run Toaster web interface"
 	@echo "   make build <target>               Build image for <target>"
 	@echo "   make shell <target>               Get shell for <target>"
-	@echo "   make workspace <target> <recipe>  Create a workspace for recipe"
+	@echo "   make workspace <target> <recipe>  Create a workspace for <recipe>"
 	@echo "   make run <qemu|qemu8>             Run QEMU ARMv7/QEMU ARMv8 emulation"
 
 # Drop other targets
