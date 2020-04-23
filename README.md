@@ -3,178 +3,183 @@
 
 ## Preconditions
 
-- Install Docker
+- Install [Docker](https://docs.docker.com/engine/install/)
 - We assume you are using Linux. While possible to use other OS (MacOS /
   Windows), this has not been tested.
 
 ## Build or pull the container with the build environment
+- `make docker` to retrieve the latest published container image
 
-- `make pull_docker` to retrieve the latest published container image
+## Pull latest repo manifest
+- `make manifest` to retrieve the latest published container image
 
--------
-## Option 1. Quick build (creating your SD card image)
+This command wraps `repo` tool and fetches the latest changes and updates of
+the working files in your local environment, essentially accomplishing git fetch
+across all Git repositories listed in [default.xml](https://github.com/Zondax/zondbox-manifest)
+manifest.
 
-*Follow the following steps if you just want to obtain the latest image*
+## QEMU ARM v7/v8 image
 
--------
-
-- Run `make build_image_dk2`
-
-- If everthing went well, after completion, you should have several `.raw`
-  images in `shared\images`
-- Download [Balena Etcher](https://www.balena.io/etcher)
-- Run Balena Etcher
-    > There is a known issue in balena etcher at the moment. It may be possible
-    > that you need to run it with `sudo`.
-- Select the `raw` image you want to flash, insert/select the SD card and click
-  Flash.
-- Insert the SD card in your device and reboot.
-- Enjoy
-
--------
-
-**THIS IS WORK IN PROGRESS AND SUBJECT TO CHANGE**
-
-## Option 2. Detailed build process
-
-*Follow the following steps if you are interested in the details or option 1
-didn't work well for you*
-
---------
-
-### Logging in
-
-The `shared` directory can be used to exchange information with the build container.
-
-To login into the container there are two options:
-
-- Option 1:
-  ```
-  make shell
-  ```
-
-- Option 2:
-  ```
-  make login
-  ```
-
-  Once inside, to initialize the OpenEmbedded environment plus some handy utilities we included:
-  ```
-  zxshell
-  ```
-
-Both options will give you a zsh session with environment variables ready to start. Option 2 is in case need more control over the process.
-
-### Add layers
-
-Before you start building please let bitbake know about meta-zondax layer:
-
+- Run `make build <target>`. Current supported QEMU targets are: `qemu`, `qemu8`
+- After build is finished, you can run QEMU emulator with this image:
 ```
-bitbake-layers add-layer ../layers/meta-zondax
-```
-
-Afterwards `meta-zondax` layer should be listed in the layer list:
-```
-bitbake-layers show-layers
-NOTE: Starting bitbake server...
-layer                 path                                      priority
-==========================================================================
-meta-python           /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-python  7
-meta-oe               /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-oe  6
-meta-oe               /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-oe  6
-meta-gnome            /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-gnome  7
-meta-xfce             /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-xfce  7
-meta-initramfs        /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-initramfs  8
-meta-multimedia       /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-multimedia  6
-meta-networking       /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-networking  5
-meta-webserver        /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-webserver  6
-meta-filesystems      /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-filesystems  6
-meta-perl             /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-perl  6
-meta-python           /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-openembedded/meta-python  7
-meta-st-stm32mp       /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-st/meta-st-stm32mp  6
-meta-qt5              /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-qt5  7
-meta-st-openstlinux   /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-st/meta-st-openstlinux  5
-meta                  /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/openembedded-core/meta  5
-meta-zondax           /home/zondax/shared/zondax-meta-openstlinux-4.19-thud-mp1/layers/meta-zondax  7
-```
-
-To check what optee-related projects will be built for this image recipe, run:
-```
-$ bitbake -g st-image-core && cat pn-buildlist | grep -ve "native" | sort | uniq
+zondbox-images.git $ make run qemu
 ...
-opkg-utils
-optee-client
-optee-helloworld
-optee-os-stm32mp
+Please use telnet to receive console output:
+      NW output $ telnet 127.0.0.1 54320
+      SW output $ telnet 127.0.0.1 54321
+To mount host 'shared' directory run:
+      $ mount -t 9p -o trans=virtio host <mount_point>
+QEMU 4.1.0 monitor - type 'help' for more information
+(qemu)
+```
+
+- To obtain both Normal World (port** 54320**)/Secure World (port** 54321**)
+consoles use telnet client:
+
+```
+$ telnet 127.0.0.1 54320
+$ telnet 127.0.0.1 54321
+```
+
+- When connections are established, you can resume execution of QEMU emulator
+by entering `c` command:
+
+```
 ...
-```
-### Build
-
-You can build the full/default image:
-```
-bitbake st-image-weston
+QEMU 4.1.0 monitor - type 'help' for more information
+(qemu) c
 ```
 
-or try something leaner instead
+- You can also use `run-term` target, where terminals with connected telnet
+will be forked automatically:
 ```
-bitbake st-image-core
-```
-
-### Create SD-card image
-
-There is a script to build you sdcard image at
-`$IMAGEDIR/scripts/create_sdcard_from_flashlayout.sh` and many layouts that you
-can use.
-
-You can list layouts with:
-```
-ls $IMAGEDIR/flashlayout*/
+zondbox-images.git $ make run-term qemu
 ```
 
-As an example, you can run:
-```
-$IMAGEDIR/scripts/create_sdcard_from_flashlayout.sh $IMAGEDIR/flashlayout_st-image-weston/FlashLayout_sdcard_stm32mp157c-dk2-optee.tsv
-```
+- When Linux inside QEMU is booted, login with `root` without password.
 
-this will generate an image:
-```
-......
+## STM32MP1 DK2 image
 
-RAW IMAGE generated: /home/zondax/shared/openstlinux-4.19-thud-mp1-19-10-09/build-openstlinuxweston-stm32mp1/tmp-glibc/deploy/images/stm32mp1/flashlayout_st-image-weston/../flashlayout_st-image-weston_FlashLayout_sdcard_stm32mp157c-dk2-optee.raw
-
-WARNING: before to use the command dd, please umount all the partitions associated to SDCARD.
-
-    sudo umount `lsblk --list | grep mmcblk0 | grep part | gawk '{ print $7 }' | tr '\n' ' '`
-
-To put this raw image on sdcard:
-    sudo dd if=/home/zondax/shared/openstlinux-4.19-thud-mp1-19-10-09/build-openstlinuxweston-stm32mp1/tmp-glibc/deploy/images/stm32mp1/flashlayout_st-image-weston/../flashlayout_st-image-weston_FlashLayout_sdcard_stm32mp157c-dk2-optee.raw of=/dev/mmcblk0 bs=8M conv=fdatasync status=progress
-```
-
-### Flashing your SD-card
-
-Now you can go outside the container and run:
-
-> Depending on your setup, it is possible that `/dev/mmcblk0` is not the correct
->device
->
->instead of `/dev/mmcblk0` it is possible that you need to use something like
->`/dev/sd?` if you are using card readers, etc.
+- Run `make build <target>`. Current supported real hw targets are: `dk2`;
+- After build is finished, you can run find the raw image ready for flashing
+to the SD card in `shared/images/`
+- Flash raw image to your SD card:
 
 ```
-sudo dd if=../flashlayout_st-image-weston/../flashlayout_st-image-weston_FlashLayout_sdcard_stm32mp157c-dk2-optee.raw of=/dev/mmcblk0 bs=8M conv=fdatasync status=progress oflag=direct
-```
-Notice the `oflag=direct` that skips catching and will show progress all the time.
-
-## Booting and running tests
-
-Insert the SD card and boot your device.
-
-> TODO: EXPLAIN minicom/serial, etc.
-
-Now you can run the OPTEE test harness
-
-```
-xtest
+zondbox-images.git $ sudo dd if=shared/images/dk2/flashlayout_core-image-minimal_FlashLayout_sdcard_stm32mp157c-dk2-optee.raw of=/dev/mmcblk0 bs=8M conv=fdatasync status=progress
 ```
 
-If everything went well, you should be able to see that all test pass.
+- Insert SD to your DK2 board and boot it
+- When Linux is booted, login with root without password.
+
+
+## Running tests
+
+When your target is booted you can verify that everything works as expected
+by using OP-TEE sanity test suit.
+```
+$ xtest
+...
+regression_8001 OK
+regression_8002 OK
+regression_8101 OK
+regression_8102 OK
+regression_8103 OK
++-----------------------------------------------------
+24603 subtests of which 0 failed
+99 test cases of which 0 failed
+0 test cases were skipped
+TEE test application done!
+```
+
+Also you can invoke minimal Rust TEE "hello world" application:
+```
+ root@qemu-optee32:~# hello_rustee
+    [RUSTEE] <= 12345
+    [RUSTEE] => 12387
+```
+
+## Development
+
+### Adjusting existing recipe
+
+- If you're familiar with Yocto build system and want to run all Yocto-specific
+commands manually, you can login into the docker container using this command:
+```
+zondbox-images.git $ make shell <target> # target: qemu, qemu8, dk2
+```
+
+Then follow steps described in this [manual](https://wiki.yoctoproject.org/wiki/TipsAndTricks/Patching_the_source_for_a_recipe)
+
+- If you're not familiar with Yocto, you can use existing wrappers which
+is supposed to make simplify things:
+```
+zondbox-images.git $ make workspace <target> <recipe-name>
+```
+
+This will fetch the sources for the recipe and unpack them to a
+`shared/zondbox-distro/build/workspace/sources/<recipename>` directory and
+initialise it as a git repository if it isn't already one. You can make any
+changes to the sources, make new commits, switch branches/remotes etc.
+- When you want rebuild the images, the sources from your workspace will be
+used instead the` SRC_URI` value specified in recipe.
+
+### Creating new recipe
+
+- For creating a new example recipe you could:
+```
+zondbox-images.git $ cd shared/zondbox-distro/meta-zondax
+meta-zondax $ mkdir recipes-example
+meta-zondax $ cd recipes-example
+recipes-example $ mkdir bbexample
+recipes-example $ cd bbexample
+bbexample $ wget https://raw.githubusercontent.com/DynamicDevices/meta-example/master/recipes-example/bbexample/bbexample_1.0.bb
+```
+
+- The recipe will then be picked up by bitbake and you can build the recipe.
+Login into docker container using `make shell <target>` command, then:
+
+```
+ $ bitbake bbexample
+```
+
+### OP-TEE updates deployment
+
+- To avoid restarting QEMU for testing updates of userspace binaries, you
+can mount `shared` directory using this command inside QEMU terminal:
+```
+root@qemu-optee32:~# mount -t 9p -o trans=virtio host /mnt
+```
+
+- Then you can check example script, prepared for `hello_rustee` application,
+stored in `shared/qemu-scripts` dir on the host. To invoke it from QEMU run:
+```
+root@qemu-optee32:/mnt# ./qemu-scripts/run_app.sh
+Copying TAs...
+-rw-r--r--    1 1000     1000       65.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/528938ce-fc59-11e8-8eb2-f2801f1b9fd1.ta
+-rw-r--r--    1 1000     1000      106.8K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/5b9e0e40-2636-11e1-ad9e-0002a5d5c51b.ta
+-rw-r--r--    1 1000     1000       85.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/5ce0c432-0ab0-40e5-a056-782ca0e6aba2.ta
+-rw-r--r--    1 1000     1000       85.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/614789f2-39c0-4ebf-b235-92b32ac107ed.ta
+-rw-r--r--    1 1000     1000       89.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/731e279e-aafb-4575-a771-38caa6f0cca6.ta
+-rw-r--r--    1 1000     1000       70.1K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/873bcd08-c2c3-11e6-a937-d0bf9c45c61c.ta
+-rw-r--r--    1 1000     1000       66.0K Apr 23 16:55 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/8d22f026-eb0a-4401-b575-5cf59327119b.ta
+-rw-r--r--    1 1000     1000       65.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/a4c04d50-f180-11e8-8eb2-f2801f1b9fd1.ta
+-rw-r--r--    1 1000     1000       17.3K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/b3091a65-9751-4784-abf7-0298a7cc35ba.ta
+-rw-r--r--    1 1000     1000       89.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/b689f2a7-8adf-477a-9f99-32e90c0ad0a2.ta
+-rw-r--r--    1 1000     1000       65.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/c3f6e2c0-3548-11e1-b86c-0800200c9a66.ta
+-rw-r--r--    1 1000     1000      340.4K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/cb3e5ba0-adf1-11e0-998b-0002a5d5c51b.ta
+-rw-r--r--    1 1000     1000       65.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/d17f73a0-36ef-11e1-984a-0002a5d5c51b.ta
+-rw-r--r--    1 1000     1000       85.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/e13010e0-2ae1-11e5-896a-0002a5d5c51b.ta
+-rw-r--r--    1 1000     1000       86.0K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/e626662e-c0e2-485c-b8c8-09fbce6edf3d.ta
+-rw-r--r--    1 1000     1000       65.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/e6a33ed4-562b-463a-bb7e-ff5e15a493c8.ta
+-rw-r--r--    1 1000     1000       73.9K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/f157cda0-550c-11e5-a6fa-0002a5d5c51b.ta
+-rw-r--r--    1 1000     1000       17.3K Apr 20 15:30 ./qemu-scripts/../zondbox-distro/build/tmp/work/qemu_optee32-poky-linux-gnueabi/core-image-minimal/1.0-r0/rootfs//lib/optee_armtz/ffd2bded-ab7d-4988-95ee-e4962fff7154.ta
+
+------------------------ LAUNCHING HOST -------------------------------
+
+[RUSTEE] <= 12345
+[RUSTEE] => 12387
+[RUSTEE] Supertest
+INIT: Id "AMA1" respawning too fast: disabled for 5 minutes
+```
