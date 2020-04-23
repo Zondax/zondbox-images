@@ -43,8 +43,6 @@ define run_docker_build
 endef
 
 define run_docker_qemu
-	$(call launch-terminal,$(QEMU_SERIAL1),"Normal World")
-	$(call launch-terminal,$(QEMU_SERIAL2),"Secure World")
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) --rm \
 	--privileged \
 	-u $(shell id -u) \
@@ -55,6 +53,12 @@ define run_docker_qemu
 	-e ZONDAX_CONF=$(2) \
 	$(DOCKER_IMAGE) \
 	"$(1)"
+endef
+
+define run_docker_qemu_xterm
+	$(call launch-terminal,$(QEMU_SERIAL1),"Normal World")
+	$(call launch-terminal,$(QEMU_SERIAL2),"Secure World")
+	$(call run_docker_qemu,$(1),$(2))
 endef
 
 # $(2) is MACHINE
@@ -110,8 +114,12 @@ build: docker
 	$(call run_docker_build,$(SCRIPTS_DIR)/zxbuild.sh,$(filter-out $@,$(MAKECMDGOALS)))
 
 .PHONY: run
-run : docker
+run: docker
 	$(call run_docker_qemu,$(SCRIPTS_DIR)/zxrun.sh,$(filter-out $@,$(MAKECMDGOALS)))
+
+.PHONY: run
+run-term: docker
+	$(call run_docker_qemu_xterm,$(SCRIPTS_DIR)/zxrun.sh,$(filter-out $@,$(MAKECMDGOALS)))
 
 # Creating workspace so you can work locally on recipe source code
 # Example:
@@ -131,6 +139,7 @@ help:
 	@echo "   make shell <target>               Get shell for <target>"
 	@echo "   make workspace <target> <recipe>  Create a workspace for <recipe>"
 	@echo "   make run <qemu|qemu8>             Run QEMU ARMv7/QEMU ARMv8 emulation"
+	@echo "   make run-term <qemu|qemu8>        Run QEMU emulation + fork xterm terminals for NW/SW consoles"
 
 # Drop other targets
 %:
