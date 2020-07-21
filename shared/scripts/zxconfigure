@@ -27,7 +27,12 @@ elif [ "$ZONDAX_CONF" == "pico-imx8m" ]; then
 	IMAGE_DIR=tmp/deploy/images/pico-imx8mq
 	BSP_LAYERS=(meta-freescale meta-tn-imx-bsp)
 
-	declare ACCEPT_FSL_EULA=1
+elif [ "$ZONDAX_CONF" == "flex-imx8mm" ]; then
+	echo "Building for TechNexion FLEX-i.MX8MM"
+
+	MACHINE=flex-imx8mm
+	IMAGE_DIR=tmp/deploy/images/flex-imx8mm
+	BSP_LAYERS=(meta-freescale meta-tn-imx-bsp)
 
 elif [ "$ZONDAX_CONF" == "qemu8" ]; then
 	echo "Building for QEMU v8"
@@ -46,6 +51,8 @@ else
 
 	exit 1
 fi
+
+declare ACCEPT_FSL_EULA=1
 
 function bsp_layers_current_add () {
 	for i in "${BSP_LAYERS[@]}"; do bitbake-layers add-layer ${ROOT_DIR}/$i; done
